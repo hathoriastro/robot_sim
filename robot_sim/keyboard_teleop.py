@@ -1,157 +1,150 @@
-#!/usr/bin/env python3
+"""Keyboard teleoperation node for robot simulation."""
 
-import sys
 import select
+import sys
 import termios
-import tty
 import threading
+import tty
+
+from geometry_msgs.msg import Twist
 
 import rclpy
 from rclpy.node import Node
-from geometry_msgs.msg import Twist
+
+from std_msgs.msg import String
 
 
 class KeyboardTeleop(Node):
+    """Interactive terminal keyboard teleoperation and game controller node."""
 
     def __init__(self):
+        """Initialize publishers, speeds, and background keyboard thread."""
         super().__init__('keyboard_teleop')
 
-        self.publisher = self.create_publisher(
+        # Publish manual cmd_vel to /cmd_vel_manual and /cmd_vel
+        self.publisher_manual = self.create_publisher(
+            Twist,
+            '/cmd_vel_manual',
+            10
+        )
+        self.publisher_direct = self.create_publisher(
             Twist,
             '/cmd_vel',
             10
         )
 
-        self.speed = 0.5
-        self.turn_speed = 1.0
+        # Publish game control events (/game_control)
+        self.pub_game_control = self.create_publisher(
+            String,
+            '/game_control',
+            10
+        )
 
-        # Berapa lama menunggu input sebelum dianggap "tidak ada tombol
-        # ditekan" dan robot dihentikan. Kecil supaya responsif.
-        self.key_timeout = 0.1  # detik
+        self.speed = 0.8
+        self.turn_speed = 1.4
 
+        self.key_timeout = 0.1  # seconds
         self.running = True
 
         # Save terminal settings
         self.settings = termios.tcgetattr(sys.stdin)
 
-        self.get_logger().info('Keyboard Teleop Started')
-        self.get_logger().info('--------------------------------')
-        self.get_logger().info('W / UP    : Forward')
-        self.get_logger().info('S / DOWN  : Backward')
-        self.get_logger().info('A / LEFT  : Turn Left')
-        self.get_logger().info('D / RIGHT : Turn Right')
-        self.get_logger().info('SPACE     : Stop')
-        self.get_logger().info('CTRL+C    : Exit')
-        self.get_logger().info('Robot akan berhenti otomatis jika tidak ada tombol ditekan')
-        self.get_logger().info('--------------------------------')
+        self.print_ui()
 
         # Start keyboard thread
         self.keyboard_thread = threading.Thread(
             target=self.keyboard_loop,
             daemon=True
         )
-
         self.keyboard_thread.start()
 
+    def print_ui(self):
+        """Print the game controller keyboard keybindings banner."""
+        print('\n' + '=' * 60)
+        print('   🎮 TIME ATTACK: COIN RUSH - GAME CONTROLLER 🎮')
+        print('=' * 60)
+        print(' [W / ↑] : Maju          | [S / ↓] : Mundur')
+        print(' [A / ←] : Belok Kiri    | [D / →] : Belok Kanan')
+        print(' [SPACE] : Stop')
+        print(' [M]     : Switch Mode (Manual WASD <--> Autopilot AI)')
+        print(' [R]     : Instant Reset Game (New Player / Restart)')
+        print(' [CTRL+C]: Keluar')
+        print('=' * 60 + '\n')
+
     def _key_pressed(self, timeout):
-        """Cek apakah ada karakter di stdin dalam batas waktu `timeout`.
-        Non-blocking: kalau tidak ada input, langsung return False."""
+        """Check if characters are ready on stdin within given timeout."""
         ready, _, _ = select.select([sys.stdin], [], [], timeout)
         return bool(ready)
 
     def keyboard_loop(self):
-
+        """Continuously capture non-blocking keystrokes and publish speed."""
         tty.setcbreak(sys.stdin.fileno())
 
         try:
-
             last_linear = 0.0
             last_angular = 0.0
 
             while self.running:
-
                 msg = Twist()
 
                 if self._key_pressed(self.key_timeout):
-
                     key = sys.stdin.read(1)
 
-                    # =========================
-                    # WASD
-                    # =========================
-
+                    # WASD keys
                     if key == 'w':
                         msg.linear.x = self.speed
-
                     elif key == 's':
                         msg.linear.x = -self.speed
-
                     elif key == 'a':
                         msg.angular.z = self.turn_speed
-
                     elif key == 'd':
                         msg.angular.z = -self.turn_speed
 
-                    # =========================
-                    # ARROW KEYS
-                    # =========================
-
+                    # Arrow keys escape sequence
                     elif key == '\x1b':
-
-                        # Escape sequence panah juga butuh dicek non-blocking,
-                        # jaga-jaga kalau cuma tombol ESC yang ditekan.
                         if self._key_pressed(self.key_timeout):
-
                             key2 = sys.stdin.read(2)
                             arrow = key + key2
-
                             if arrow == '\x1b[A':
                                 msg.linear.x = self.speed
-
                             elif arrow == '\x1b[B':
                                 msg.linear.x = -self.speed
-
                             elif arrow == '\x1b[D':
                                 msg.angular.z = self.turn_speed
-
                             elif arrow == '\x1b[C':
                                 msg.angular.z = -self.turn_speed
 
-                    # =========================
-                    # STOP
-                    # =========================
+                    # Game controls
+                    elif key in ['m', 'M']:
+                        cmd_str = String()
+                        cmd_str.data = 'TOGGLE_MODE'
+                        self.pub_game_control.publish(cmd_str)
+                        print(' [ACTION] Mode Toggled! (Manual <--> AI)')
+                    elif key in ['r', 'R']:
+                        cmd_str = String()
+                        cmd_str.data = 'RESET'
+                        self.pub_game_control.publish(cmd_str)
+                        print(' [ACTION] Game Reset!')
 
+                    # Stop
                     elif key == ' ':
                         msg.linear.x = 0.0
                         msg.angular.z = 0.0
-
                     else:
-                        # Tombol lain diabaikan, tapi tetap publish state
-                        # terakhir supaya tidak ada jeda aneh.
                         msg.linear.x = last_linear
                         msg.angular.z = last_angular
-
                 else:
-                    # Tidak ada tombol ditekan dalam key_timeout detik
-                    # -> robot berhenti.
+                    # Timeout reached without keypress -> stop robot
                     msg.linear.x = 0.0
                     msg.angular.z = 0.0
 
-                self.publisher.publish(msg)
-
-                if msg.linear.x != last_linear or msg.angular.z != last_angular:
-                    self.get_logger().info(
-                        f'Command -> linear: '
-                        f'{msg.linear.x:.2f}, '
-                        f'angular: '
-                        f'{msg.angular.z:.2f}'
-                    )
+                self.publisher_manual.publish(msg)
+                self.publisher_direct.publish(msg)
 
                 last_linear = msg.linear.x
                 last_angular = msg.angular.z
 
         finally:
-
             termios.tcsetattr(
                 sys.stdin,
                 termios.TCSADRAIN,
@@ -159,47 +152,35 @@ class KeyboardTeleop(Node):
             )
 
     def stop_robot(self):
-
+        """Publish zero velocities to stop the robot."""
         msg = Twist()
-
         msg.linear.x = 0.0
         msg.angular.z = 0.0
-
-        self.publisher.publish(msg)
+        self.publisher_manual.publish(msg)
+        self.publisher_direct.publish(msg)
 
     def destroy_node(self):
-
+        """Clean up terminal settings, thread, and destroy node."""
         self.running = False
-
         self.stop_robot()
-
         termios.tcsetattr(
             sys.stdin,
             termios.TCSADRAIN,
             self.settings
         )
-
         super().destroy_node()
 
 
 def main(args=None):
-
+    """Entry point for the keyboard teleoperation node."""
     rclpy.init(args=args)
-
     node = KeyboardTeleop()
-
     try:
-
         rclpy.spin(node)
-
     except KeyboardInterrupt:
-
         pass
-
     finally:
-
         node.destroy_node()
-
         if rclpy.ok():
             rclpy.shutdown()
 
