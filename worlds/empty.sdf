@@ -1,43 +1,46 @@
 <?xml version="1.0" ?>
-
 <sdf version="1.9">
-
   <world name="default">
 
-    <!-- Physics -->
+    <!-- Plugins for physics, user commands (spawning), and scene broadcasting -->
+    <plugin
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
+    </plugin>
+    <plugin
+      filename="gz-sim-user-commands-system"
+      name="gz::sim::systems::UserCommands">
+    </plugin>
+    <plugin
+      filename="gz-sim-scene-broadcaster-system"
+      name="gz::sim::systems::SceneBroadcaster">
+    </plugin>
+    <plugin
+      filename="gz-sim-sensors-system"
+      name="gz::sim::systems::Sensors">
+      <render_engine>ogre2</render_engine>
+    </plugin>
 
-    <physics name="1ms"
-             type="ode">
-
+    <!-- Physics configuration -->
+    <physics name="1ms" type="ode">
       <max_step_size>0.001</max_step_size>
       <real_time_factor>1</real_time_factor>
       <real_time_update_rate>1000</real_time_update_rate>
-
     </physics>
 
-
-    <!-- Ground -->
-
+    <!-- Ground Plane -->
     <include>
-
       <uri>
         https://fuel.gazebosim.org/1.0/OpenRobotics/models/Ground Plane
       </uri>
-
     </include>
 
-
-    <!-- Sun -->
-
+    <!-- Sun Light -->
     <include>
-
       <uri>
         https://fuel.gazebosim.org/1.0/OpenRobotics/models/Sun
       </uri>
-
     </include>
 
-
   </world>
-
 </sdf>

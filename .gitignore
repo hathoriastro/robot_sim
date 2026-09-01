@@ -1,0 +1,58 @@
+# ==========================================
+# ROS 2 & Colcon Build Artifacts
+# ==========================================
+build/
+install/
+log/
+COLCON_IGNORE
+
+# ==========================================
+# Python Artifacts & Caches
+# ==========================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+dist/
+*.egg
+
+# Testing & Coverage
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# ==========================================
+# OS & File System Artifacts
+# ==========================================
+# Windows NTFS / WSL Zone Identifier
+*:Zone.Identifier
+Zone.Identifier
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# ==========================================
+# IDEs & Code Editors
+# ==========================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+*.sublime-project
+*.sublime-workspace
+
+# ==========================================
+# Logs & Temporary Files
+# ==========================================
+*.log
+

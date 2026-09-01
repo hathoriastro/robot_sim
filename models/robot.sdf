@@ -2,17 +2,13 @@
 <sdf version="1.9">
 
   <model name="my_robot">
-
     <static>false</static>
 
     <!-- ========================= -->
     <!-- BODY -->
     <!-- ========================= -->
-
     <link name="base_link">
-
       <pose>0 0 0.30 0 0 0</pose>
-
       <inertial>
         <mass>10.0</mass>
         <inertia>
@@ -24,7 +20,6 @@
           <iyz>0</iyz>
         </inertia>
       </inertial>
-
       <collision name="base_collision">
         <geometry>
           <box>
@@ -32,7 +27,6 @@
           </box>
         </geometry>
       </collision>
-
       <visual name="base_visual">
         <geometry>
           <box>
@@ -44,20 +38,13 @@
           <diffuse>0.1 0.4 0.8 1</diffuse>
         </material>
       </visual>
-
     </link>
-
 
     <!-- ========================= -->
     <!-- LEFT WHEEL -->
-    <!-- link TIDAK diputar; rotasi hanya di inertial/collision/visual -->
-    <!-- sehingga axis joint "0 1 0" tetap sejajar sumbu Y dunia -->
     <!-- ========================= -->
-
     <link name="left_wheel">
-
       <pose>0 0.38 0.20 0 0 0</pose>
-
       <inertial>
         <pose>0 0 0 1.570796 0 0</pose>
         <mass>1.0</mass>
@@ -70,7 +57,6 @@
           <iyz>0</iyz>
         </inertia>
       </inertial>
-
       <collision name="left_wheel_collision">
         <pose>0 0 0 1.570796 0 0</pose>
         <geometry>
@@ -88,7 +74,6 @@
           </friction>
         </surface>
       </collision>
-
       <visual name="left_wheel_visual">
         <pose>0 0 0 1.570796 0 0</pose>
         <geometry>
@@ -102,18 +87,13 @@
           <diffuse>0.15 0.15 0.15 1</diffuse>
         </material>
       </visual>
-
     </link>
-
 
     <!-- ========================= -->
     <!-- RIGHT WHEEL -->
     <!-- ========================= -->
-
     <link name="right_wheel">
-
       <pose>0 -0.38 0.20 0 0 0</pose>
-
       <inertial>
         <pose>0 0 0 1.570796 0 0</pose>
         <mass>1.0</mass>
@@ -126,7 +106,6 @@
           <iyz>0</iyz>
         </inertia>
       </inertial>
-
       <collision name="right_wheel_collision">
         <pose>0 0 0 1.570796 0 0</pose>
         <geometry>
@@ -144,7 +123,6 @@
           </friction>
         </surface>
       </collision>
-
       <visual name="right_wheel_visual">
         <pose>0 0 0 1.570796 0 0</pose>
         <geometry>
@@ -158,19 +136,13 @@
           <diffuse>0.15 0.15 0.15 1</diffuse>
         </material>
       </visual>
-
     </link>
 
-
     <!-- ========================= -->
-    <!-- CASTER DEPAN (penyangga, bukan roda penggerak) -->
-    <!-- Mencegah chassis oleng ke depan/belakang -->
+    <!-- CASTER DEPAN -->
     <!-- ========================= -->
-
     <link name="caster_front">
-
       <pose>0.45 0 0.05 0 0 0</pose>
-
       <inertial>
         <mass>0.3</mass>
         <inertia>
@@ -182,7 +154,6 @@
           <iyz>0</iyz>
         </inertia>
       </inertial>
-
       <collision name="caster_front_collision">
         <geometry>
           <sphere>
@@ -198,7 +169,6 @@
           </friction>
         </surface>
       </collision>
-
       <visual name="caster_front_visual">
         <geometry>
           <sphere>
@@ -210,7 +180,6 @@
           <diffuse>0.2 0.2 0.2 1</diffuse>
         </material>
       </visual>
-
     </link>
 
     <joint name="caster_front_joint" type="fixed">
@@ -218,15 +187,11 @@
       <child>caster_front</child>
     </joint>
 
-
     <!-- ========================= -->
     <!-- CASTER BELAKANG -->
     <!-- ========================= -->
-
     <link name="caster_rear">
-
       <pose>-0.45 0 0.05 0 0 0</pose>
-
       <inertial>
         <mass>0.3</mass>
         <inertia>
@@ -238,7 +203,6 @@
           <iyz>0</iyz>
         </inertia>
       </inertial>
-
       <collision name="caster_rear_collision">
         <geometry>
           <sphere>
@@ -254,7 +218,6 @@
           </friction>
         </surface>
       </collision>
-
       <visual name="caster_rear_visual">
         <geometry>
           <sphere>
@@ -266,7 +229,6 @@
           <diffuse>0.2 0.2 0.2 1</diffuse>
         </material>
       </visual>
-
     </link>
 
     <joint name="caster_rear_joint" type="fixed">
@@ -274,13 +236,9 @@
       <child>caster_rear</child>
     </joint>
 
-
     <!-- ========================= -->
     <!-- LEFT WHEEL JOINT -->
-    <!-- axis "0 1 0" sekarang benar2 sejajar sumbu Y dunia -->
-    <!-- karena link left_wheel tidak lagi diputar -->
     <!-- ========================= -->
-
     <joint name="left_wheel_joint" type="revolute">
       <parent>base_link</parent>
       <child>left_wheel</child>
@@ -296,11 +254,9 @@
       </axis>
     </joint>
 
-
     <!-- ========================= -->
     <!-- RIGHT WHEEL JOINT -->
     <!-- ========================= -->
-
     <joint name="right_wheel_joint" type="revolute">
       <parent>base_link</parent>
       <child>right_wheel</child>
@@ -316,41 +272,30 @@
       </axis>
     </joint>
 
-
     <!-- ========================= -->
     <!-- DIFFERENTIAL DRIVE -->
     <!-- ========================= -->
-
     <plugin
       filename="gz-sim-diff-drive-system"
       name="gz::sim::systems::DiffDrive">
-
       <left_joint>left_wheel_joint</left_joint>
       <right_joint>right_wheel_joint</right_joint>
-
       <wheel_separation>0.76</wheel_separation>
       <wheel_radius>0.20</wheel_radius>
-
       <max_linear_acceleration>2.0</max_linear_acceleration>
       <min_linear_acceleration>-2.0</min_linear_acceleration>
       <max_angular_acceleration>4.0</max_angular_acceleration>
       <min_angular_acceleration>-4.0</min_angular_acceleration>
-
       <max_linear_velocity>1.5</max_linear_velocity>
       <min_linear_velocity>-1.5</min_linear_velocity>
       <max_angular_velocity>2.0</max_angular_velocity>
       <min_angular_velocity>-2.0</min_angular_velocity>
-
       <topic>/cmd_vel</topic>
-
       <odom_topic>/odom</odom_topic>
       <odom_publish_frequency>50</odom_publish_frequency>
-
       <frame_id>odom</frame_id>
       <child_frame_id>base_link</child_frame_id>
-
       <tf_topic>/tf</tf_topic>
-
     </plugin>
 
   </model>

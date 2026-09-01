@@ -12,13 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Test flake8 conformance across python source files."""
+
 from ament_flake8.main import main_with_errors
+
 import pytest
 
 
 @pytest.mark.flake8
 @pytest.mark.linter
 def test_flake8():
+    """Test flake8 compliance on codebase."""
     rc, errors = main_with_errors(argv=[])
     assert rc == 0, \
         'Found %d code style errors / warnings:\n' % len(errors) + \
